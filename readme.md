@@ -115,3 +115,40 @@ _The nginx Deployment is set back to 1 replica._
 
 ![One instance after scale-down](images/scale-down-instances.png)<br>
 _The load balancer is back to a single target instance after the scale-down._
+
+<br>
+
+# Create EKS cluster with Fargate profile
+
+## Technologies used:
+
+Kubernetes, AWS EKS, AWS Fargate
+
+## Overview
+
+Fargate runs pods without EC2 worker nodes that I have to manage. AWS starts a small, separate compute unit for each pod. A Fargate profile decides which pods run on Fargate. In this project the profile selects pods in the `dev` namespace. All other pods still run on the Node Group.
+
+<br>
+
+## 1. Fargate IAM role and Fargate profile
+
+First I created an IAM role for Fargate with the `AmazonEKSFargatePodExecutionRolePolicy`. EKS uses this role to start pods on Fargate.
+
+Then I created the Fargate profile `dev-profile` on the cluster. It uses the private subnets of the VPC and matches pods in the `dev` namespace.
+
+![Node Group and Fargate profile](images/instance-and-fargate.png)<br>
+_The cluster now has both compute types: the Node Group `eks-node-group` and the Fargate profile `dev-profile` for the `dev` namespace. Both are Active._
+
+<br>
+
+## 2. Deploy an application with the Fargate profile
+
+I updated [nginx.yaml](nginx.yaml) so the nginx Deployment runs in the `dev` namespace and has the label `profile: fargate`. Then I created the namespace and deployed it.
+
+```
+kubectl create namespace dev
+kubectl apply -f nginx.yaml
+```
+
+![nginx running on Fargate](images/fargate.png)<br>
+_A new `fargate-ip-...` node appears next to the EC2 worker node. Fargate started it for the nginx pod in the `dev` namespace._
