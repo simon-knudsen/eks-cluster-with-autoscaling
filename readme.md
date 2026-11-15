@@ -152,3 +152,45 @@ kubectl apply -f nginx.yaml
 
 ![nginx running on Fargate](images/fargate.png)<br>
 _A new `fargate-ip-...` node appears next to the EC2 worker node. Fargate started it for the nginx pod in the `dev` namespace._
+
+<br>
+
+# Create EKS cluster with eksctl
+
+## Technologies used:
+
+Kubernetes, AWS EKS, Eksctl, Linux
+
+## Overview
+
+In the first project I created the IAM roles, the VPC, the cluster and the Node Group one by one. eksctl does all of this with a single command. It creates the resources through CloudFormation stacks and uses sensible defaults for everything I don't set myself. This saves a lot of manual work.
+
+<br>
+
+## 1. Create the cluster with one command
+
+I set the cluster name, Kubernetes version, region and Node Group settings as options on `eksctl create cluster`. The Node Group uses `t2.micro` instances, starts with 2 nodes and can scale between 1 and 3.
+
+```
+eksctl create cluster \
+  --name demo-cluster \
+  --version 1.37 \
+  --region eu-central-1 \
+  --nodegroup-name demo-nodes \
+  --node-type t2.micro \
+  --nodes 2 \
+  --nodes-min 1 \
+  --nodes-max 3
+```
+
+![eksctl create cluster command](images/eksctl.png)<br>
+_The `eksctl create cluster` command with the settings for the cluster and its Node Group._
+
+<br>
+
+## 2. eksctl creates the resources
+
+eksctl first creates the control plane and the add-ons such as `vpc-cni` and `kube-proxy`. Then it builds the managed Node Group in its own CloudFormation stack. This takes a while: the Node Group stack alone was still being created after more than 25 minutes.
+
+![eksctl progress](images/eksctl-progress.png)<br>
+_eksctl creates the `vpc-cni` and `kube-proxy` add-ons, then deploys the CloudFormation stack for the `demo-nodes` Node Group and waits for it to finish._
