@@ -22,11 +22,7 @@ _AWS manages the control plane nodes. The worker nodes in the Node Group run the
 
 First I created an IAM role for EKS, so the service can manage AWS resources for the cluster.
 
-<br>
-
 The worker nodes need their own network. I created the VPC with public and private subnets using the AWS CloudFormation template for EKS.
-
-<br>
 
 Then I created the EKS cluster (the control plane) in that VPC. I connected `kubectl` to it by updating the local kubeconfig with `aws eks update-kubeconfig`.
 
@@ -36,8 +32,6 @@ Then I created the EKS cluster (the control plane) in that VPC. I connected `kub
 
 Next I created an EC2 IAM role for the Node Group and attached the standard EKS worker node policies.
 
-<br>
-
 I then created a Node Group and attached it to the cluster. The group has a minimum of 1 node, a maximum of 3 nodes, and spans two availability zones.
 
 <br>
@@ -45,8 +39,6 @@ I then created a Node Group and attached it to the cluster. The group has a mini
 ## 3. Auto-scaling of worker nodes
 
 The Cluster Autoscaler runs as a pod inside the cluster and changes the desired capacity of the Node Group's Auto Scaling group. It needs AWS permissions to do that. These are defined in [custom-policy.json](custom-policy.json) and attached to the `EKSServiceAccountRole`. The autoscaler's ServiceAccount uses that role.
-
-<br>
 
 The autoscaler is deployed from [cluster-autoscaler-autodiscover.yaml](cluster-autoscaler-autodiscover.yaml), which is based on the official template. I updated it with the role annotation, the AWS region, the cluster name for auto-discovery, and an image version that matches the cluster. All changes are listed in [commands.md](commands.md).
 
